@@ -1,0 +1,28 @@
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test coverage
+*.profraw
+*.profdata
+lcov.info
+tarpaulin-report.html
+
+# Benchmarks
+/benches/target/
+
+# Documentation builds
+/doc/
+
+# Example builds
+/examples/target/

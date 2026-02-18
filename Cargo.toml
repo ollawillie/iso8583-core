@@ -1,0 +1,89 @@
+[package]
+name = "iso8583-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70.0"
+authors = ["ISO 8583 Library Contributors"]
+description = "Production-ready zero-allocation ISO 8583 parser with SIMD optimization and no_std support"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ollawillie/iso8583-core"
+homepage = "hhttps://github.com/ollawillie/iso8583-core"
+documentation = "https://docs.rs/iso8583-core"
+readme = "README.md"
+keywords = ["iso8583", "payment", "financial", "banking", "no-std"]
+categories = ["parser-implementations", "encoding", "finance", "no-std"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
+# Error handling (std only)
+thiserror = { version = "1.0", optional = true }
+
+# Date and time handling (std only)
+chrono = { version = "0.4", optional = true }
+
+# Hexadecimal encoding/decoding (no_std compatible)
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
+
+# Decimal precision for amounts (std only)
+rust_decimal = { version = "1.33", optional = true }
+
+# Serialization (optional, for JSON debugging)
+serde = { version = "1.0", features = ["derive"], optional = true, default-features = false }
+serde_json = { version = "1.0", optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+proptest = "1.4"
+pretty_assertions = "1.4"
+
+[features]
+default = ["std"]
+
+# Standard library support
+std = ["thiserror", "chrono", "rust_decimal", "alloc", "hex/std", "serde?/std"]
+
+# Heap allocation support (required for Vec, String, etc.)
+alloc = []
+
+# SIMD optimization for bitmap operations
+simd = []
+
+# JSON serialization support
+serde = ["dep:serde", "dep:serde_json", "std"]
+
+# All features enabled
+full = ["std", "simd", "serde"]
+
+[[bench]]
+name = "parsing_benchmark"
+harness = false
+required-features = ["std"]
+
+[[bench]]
+name = "generation_benchmark"
+harness = false
+required-features = ["std"]
+
+[[example]]
+name = "atm_withdrawal"
+required-features = ["std"]
+
+[[example]]
+name = "pos_purchase"
+required-features = ["std"]
+
+[[example]]
+name = "balance_inquiry"
+required-features = ["std"]
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 16
+panic = "abort"
+
+[profile.bench]
+inherits = "release"
