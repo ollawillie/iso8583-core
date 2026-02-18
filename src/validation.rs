@@ -73,7 +73,7 @@ impl Validator {
                 // Check field type constraints
                 match def.field_type {
                     crate::field::FieldType::Numeric => {
-                        if !s.chars().all(|c| c.is_ascii_digit()) {
+                        if !s.chars().all(|c: char| c.is_ascii_digit()) {
                             return Err(ISO8583Error::invalid_field_value(
                                 field.number(),
                                 "Field must be numeric",
@@ -81,7 +81,7 @@ impl Validator {
                         }
                     }
                     crate::field::FieldType::Alpha => {
-                        if !s.chars().all(|c| c.is_ascii_alphabetic() || c == ' ') {
+                        if !s.chars().all(|c: char| c.is_ascii_alphabetic() || c == ' ') {
                             return Err(ISO8583Error::invalid_field_value(
                                 field.number(),
                                 "Field must be alphabetic",
@@ -143,14 +143,14 @@ impl Validator {
             }
             Field::TransactionAmount | Field::SettlementAmount => {
                 if let Some(amount) = value.as_string() {
-                    if !amount.chars().all(|c| c.is_ascii_digit()) {
+                    if !amount.chars().all(|c: char| c.is_ascii_digit()) {
                         return Err(ISO8583Error::invalid_field_value(
                             field.number(),
                             "Amount must be numeric",
                         ));
                     }
                     // Amount must not be zero (in most cases)
-                    if amount.chars().all(|c| c == '0') {
+                    if amount.chars().all(|c: char| c == '0') {
                         return Err(ISO8583Error::invalid_field_value(
                             field.number(),
                             "Amount cannot be zero",
@@ -239,7 +239,7 @@ impl Validator {
 
     /// Validate currency code (ISO 4217)
     pub fn validate_currency_code(code: &str) -> bool {
-        code.len() == 3 && code.chars().all(|c| c.is_ascii_digit())
+        code.len() == 3 && code.chars().all(|c: char| c.is_ascii_digit())
     }
 }
 

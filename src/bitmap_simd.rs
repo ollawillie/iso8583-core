@@ -35,17 +35,17 @@ impl Bitmap {
         }
 
         match field {
-            1..=64 => self.is_set_in_bitmap(&self.primary, field),
+            1..=64 => Self::is_set_in_bitmap(&self.primary, field),
             65..=128 => {
                 if let Some(ref secondary) = self.secondary {
-                    self.is_set_in_bitmap(secondary, field - 64)
+                    Self::is_set_in_bitmap(secondary, field - 64)
                 } else {
                     false
                 }
             }
             129..=192 => {
                 if let Some(ref tertiary) = self.tertiary {
-                    self.is_set_in_bitmap(tertiary, field - 128)
+                    Self::is_set_in_bitmap(tertiary, field - 128)
                 } else {
                     false
                 }
@@ -64,22 +64,22 @@ impl Bitmap {
         match field {
             1 => {
                 // Setting field 1 means secondary bitmap will be present
-                self.set_in_bitmap(&mut self.primary, 1);
+                Self::set_in_bitmap(&mut self.primary, 1);
                 if self.secondary.is_none() {
                     self.secondary = Some([0u8; 8]);
                 }
             }
             2..=64 => {
-                self.set_in_bitmap(&mut self.primary, field);
+                Self::set_in_bitmap(&mut self.primary, field);
             }
             65 => {
                 // Setting field 65 means tertiary bitmap will be present
                 if self.secondary.is_none() {
                     self.secondary = Some([0u8; 8]);
-                    self.set_in_bitmap(&mut self.primary, 1); // Enable secondary
+                    Self::set_in_bitmap(&mut self.primary, 1); // Enable secondary
                 }
                 if let Some(ref mut secondary) = self.secondary {
-                    self.set_in_bitmap(secondary, 1);
+                    Self::set_in_bitmap(secondary, 1);
                     if self.tertiary.is_none() {
                         self.tertiary = Some([0u8; 8]);
                     }
@@ -88,26 +88,26 @@ impl Bitmap {
             66..=128 => {
                 if self.secondary.is_none() {
                     self.secondary = Some([0u8; 8]);
-                    self.set_in_bitmap(&mut self.primary, 1); // Enable secondary
+                    Self::set_in_bitmap(&mut self.primary, 1); // Enable secondary
                 }
                 if let Some(ref mut secondary) = self.secondary {
-                    self.set_in_bitmap(secondary, field - 64);
+                    Self::set_in_bitmap(secondary, field - 64);
                 }
             }
             129..=192 => {
                 // Ensure secondary and tertiary exist
                 if self.secondary.is_none() {
                     self.secondary = Some([0u8; 8]);
-                    self.set_in_bitmap(&mut self.primary, 1);
+                    Self::set_in_bitmap(&mut self.primary, 1);
                 }
                 if let Some(ref mut secondary) = self.secondary {
                     if self.tertiary.is_none() {
                         self.tertiary = Some([0u8; 8]);
-                        self.set_in_bitmap(secondary, 1); // Enable tertiary
+                        Self::set_in_bitmap(secondary, 1); // Enable tertiary
                     }
                 }
                 if let Some(ref mut tertiary) = self.tertiary {
-                    self.set_in_bitmap(tertiary, field - 128);
+                    Self::set_in_bitmap(tertiary, field - 128);
                 }
             }
             _ => return Err("Field number out of range"),
@@ -125,16 +125,16 @@ impl Bitmap {
 
         match field {
             1..=64 => {
-                self.clear_in_bitmap(&mut self.primary, field);
+                Self::clear_in_bitmap(&mut self.primary, field);
             }
             65..=128 => {
                 if let Some(ref mut secondary) = self.secondary {
-                    self.clear_in_bitmap(secondary, field - 64);
+                    Self::clear_in_bitmap(secondary, field - 64);
                 }
             }
             129..=192 => {
                 if let Some(ref mut tertiary) = self.tertiary {
-                    self.clear_in_bitmap(tertiary, field - 128);
+                    Self::clear_in_bitmap(tertiary, field - 128);
                 }
             }
             _ => return Err("Field number out of range"),
@@ -157,7 +157,7 @@ impl Bitmap {
 
         // Primary bitmap (fields 1-64)
         for field in 1..=64 {
-            if self.is_set_in_bitmap(&self.primary, field) {
+            if Self::is_set_in_bitmap(&self.primary, field) {
                 fields.push(field);
             }
         }
@@ -165,7 +165,7 @@ impl Bitmap {
         // Secondary bitmap (fields 65-128)
         if let Some(ref secondary) = self.secondary {
             for field in 1..=64 {
-                if self.is_set_in_bitmap(secondary, field) {
+                if Self::is_set_in_bitmap(secondary, field) {
                     fields.push(field + 64);
                 }
             }
@@ -174,7 +174,7 @@ impl Bitmap {
         // Tertiary bitmap (fields 129-192)
         if let Some(ref tertiary) = self.tertiary {
             for field in 1..=64 {
-                if self.is_set_in_bitmap(tertiary, field) {
+                if Self::is_set_in_bitmap(tertiary, field) {
                     fields.push(field + 128);
                 }
             }
@@ -231,11 +231,19 @@ impl Bitmap {
         Ok(bitmap)
     }
 
+    /// Parse from hex string
+    pub fn from_hex(hex_str: &str) -> Result<Self, &'static str> {
+        // Decode hex string to bytes
+        let bytes = hex::decode(hex_str)
+            .map_err(|_| "Invalid hex string")?;
+        Self::from_bytes(&bytes)
+    }
+
     // ===== Internal Helper Methods =====
 
     /// Check if specific field is set in 8-byte bitmap
     #[inline]
-    fn is_set_in_bitmap(&self, bitmap: &[u8; 8], field: u8) -> bool {
+    fn is_set_in_bitmap(bitmap: &[u8; 8], field: u8) -> bool {
         if field == 0 || field > 64 {
             return false;
         }
@@ -248,7 +256,7 @@ impl Bitmap {
 
     /// Set specific field in 8-byte bitmap
     #[inline]
-    fn set_in_bitmap(&self, bitmap: &mut [u8; 8], field: u8) {
+    fn set_in_bitmap(bitmap: &mut [u8; 8], field: u8) {
         if field == 0 || field > 64 {
             return;
         }
@@ -261,7 +269,7 @@ impl Bitmap {
 
     /// Clear specific field in 8-byte bitmap
     #[inline]
-    fn clear_in_bitmap(&self, bitmap: &mut [u8; 8], field: u8) {
+    fn clear_in_bitmap(bitmap: &mut [u8; 8], field: u8) {
         if field == 0 || field > 64 {
             return;
         }

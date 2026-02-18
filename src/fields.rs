@@ -101,7 +101,7 @@ macro_rules! define_numeric_field {
                 if s.len() != $len {
                     return Err("Invalid length");
                 }
-                if !s.bytes().all(|b| b.is_ascii_digit()) {
+                if !s.bytes().all(|b: u8| b.is_ascii_digit()) {
                     return Err("Must contain only digits");
                 }
                 let mut data = [0u8; $len];

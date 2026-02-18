@@ -61,6 +61,10 @@ extern crate alloc;
 pub mod spec;
 pub mod fields;
 
+// Legacy field module (std only - for backward compatibility)
+#[cfg(feature = "std")]
+pub mod field;
+
 #[cfg(feature = "alloc")]
 pub mod bitmap_simd;
 
@@ -120,10 +124,6 @@ pub use validation::Validator;
 // Legacy field enum (std only for compatibility)
 #[cfg(feature = "std")]
 pub use crate::message::Field;
-
-// Re-export macros
-pub use define_field;
-pub use define_numeric_field;
 
 #[cfg(test)]
 mod tests {

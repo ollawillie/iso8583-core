@@ -134,6 +134,13 @@ impl ISO8583Error {
     }
 }
 
+// Conversion from &'static str to ISO8583Error
+impl From<&'static str> for ISO8583Error {
+    fn from(s: &'static str) -> Self {
+        ISO8583Error::Custom(s.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
