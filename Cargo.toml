@@ -1,13 +1,13 @@
 [package]
 name = "iso8583-core"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 rust-version = "1.70.0"
 authors = ["ISO 8583 Library Contributors"]
 description = "Production-ready zero-allocation ISO 8583 parser with SIMD optimization and no_std support"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ollawillie/iso8583-core"
-homepage = "hhttps://github.com/ollawillie/iso8583-core"
+homepage = "https://github.com/ollawillie/iso8583-core"
 documentation = "https://docs.rs/iso8583-core"
 readme = "README.md"
 keywords = ["iso8583", "payment", "financial", "banking", "no-std"]
@@ -74,6 +74,3 @@ opt-level = 3
 lto = "thin"
 codegen-units = 16
 panic = "abort"
-
-[profile.bench]
-inherits = "release"
