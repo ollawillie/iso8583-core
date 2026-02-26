@@ -15,7 +15,7 @@ Zero-allocation design • SIMD-optimized • no_std compatible • Type-safe
 - 67+ passing tests  
 - BCD/EBCDIC field parsing: encoding utilities only  
 
-## ⚡ Key Features
+##  Key Features
 
 ### Architecture
 - **Zero Allocation**: Static const field tables, no runtime overhead
@@ -242,5 +242,4 @@ at your option.
 
 - Documentation: https://docs.rs/iso8583-core
 - Issues: https://github.com/ollawillie/iso8583-core/issues
-- Discussions: https://github.com/ollawillie/iso8583-core/discussions
 
