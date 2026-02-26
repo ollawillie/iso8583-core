@@ -10,7 +10,7 @@
 
 use iso8583_core::*;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     println!("╔══════════════════════════════════════════════════════════════╗");
     println!("║              ATM WITHDRAWAL TRANSACTION EXAMPLE              ║");
     println!("╚══════════════════════════════════════════════════════════════╝\n");
@@ -38,15 +38,46 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Authorization Request Generated:");
     println!("  MTI: {}", auth_request.mti);
-    println!("  PAN: {}", mask_pan(auth_request.get_field(Field::PrimaryAccountNumber).unwrap().as_string().unwrap()));
-    println!("  Amount: {}", format_amount(auth_request.get_field(Field::TransactionAmount).unwrap().as_string().unwrap()));
-    println!("  STAN: {}", auth_request.get_field(Field::SystemTraceAuditNumber).unwrap());
-    println!("  Terminal: {}\n", auth_request.get_field(Field::CardAcceptorTerminalIdentification).unwrap());
+    println!(
+        "  PAN: {}",
+        mask_pan(
+            auth_request
+                .get_field(Field::PrimaryAccountNumber)
+                .unwrap()
+                .as_string()
+                .unwrap()
+        )
+    );
+    println!(
+        "  Amount: {}",
+        format_amount(
+            auth_request
+                .get_field(Field::TransactionAmount)
+                .unwrap()
+                .as_string()
+                .unwrap()
+        )
+    );
+    println!(
+        "  STAN: {}",
+        auth_request
+            .get_field(Field::SystemTraceAuditNumber)
+            .unwrap()
+    );
+    println!(
+        "  Terminal: {}\n",
+        auth_request
+            .get_field(Field::CardAcceptorTerminalIdentification)
+            .unwrap()
+    );
 
     // Generate and display message bytes
     let auth_request_bytes = auth_request.to_bytes();
     println!("  Message Size: {} bytes", auth_request_bytes.len());
-    println!("  Hex Preview: {}...\n", hex::encode(&auth_request_bytes[..40.min(auth_request_bytes.len())]));
+    println!(
+        "  Hex Preview: {}...\n",
+        hex::encode(&auth_request_bytes[..40.min(auth_request_bytes.len())])
+    );
 
     // Step 2: Authorization Response (0110) - Simulated from bank
     println!("STEP 2: Authorization Response from Bank");
@@ -67,11 +98,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     println!("Authorization Response Received:");
-    println!("  Response Code: {} ({})", 
-             auth_response.get_field(Field::ResponseCode).unwrap(),
-             get_response_description("00"));
-    println!("  Auth ID: {}", auth_response.get_field(Field::AuthorizationIdentificationResponse).unwrap());
-    println!("  RRN: {}\n", auth_response.get_field(Field::RetrievalReferenceNumber).unwrap());
+    println!(
+        "  Response Code: {} ({})",
+        auth_response.get_field(Field::ResponseCode).unwrap(),
+        get_response_description("00")
+    );
+    println!(
+        "  Auth ID: {}",
+        auth_response
+            .get_field(Field::AuthorizationIdentificationResponse)
+            .unwrap()
+    );
+    println!(
+        "  RRN: {}\n",
+        auth_response
+            .get_field(Field::RetrievalReferenceNumber)
+            .unwrap()
+    );
 
     // Step 3: Financial Request (0200) - Actual withdrawal
     println!("STEP 3: Financial Request (Complete Transaction)");
@@ -96,8 +139,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Financial Request Generated:");
     println!("  MTI: {}", financial_request.mti);
-    println!("  STAN: {}", financial_request.get_field(Field::SystemTraceAuditNumber).unwrap());
-    println!("  Amount: {}\n", format_amount(financial_request.get_field(Field::TransactionAmount).unwrap().as_string().unwrap()));
+    println!(
+        "  STAN: {}",
+        financial_request
+            .get_field(Field::SystemTraceAuditNumber)
+            .unwrap()
+    );
+    println!(
+        "  Amount: {}\n",
+        format_amount(
+            financial_request
+                .get_field(Field::TransactionAmount)
+                .unwrap()
+                .as_string()
+                .unwrap()
+        )
+    );
 
     // Step 4: Financial Response (0210) - Confirmation from bank
     println!("STEP 4: Financial Response (Funds Debited)");
@@ -118,9 +175,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     println!("Financial Response Received:");
-    println!("  Response Code: {} ({})", 
-             financial_response.get_field(Field::ResponseCode).unwrap(),
-             get_response_description("00"));
+    println!(
+        "  Response Code: {} ({})",
+        financial_response.get_field(Field::ResponseCode).unwrap(),
+        get_response_description("00")
+    );
     println!("  Transaction Complete!");
     println!("  ✓ Customer account debited: $200.00");
     println!("  ✓ ATM can now dispense cash\n");
@@ -129,7 +188,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("╔══════════════════════════════════════════════════════════════╗");
     println!("║                    TRANSACTION SUMMARY                       ║");
     println!("╠══════════════════════════════════════════════════════════════╣");
-    println!("║ Card Number:    {}                              ║", mask_pan("4111111111111111"));
+    println!(
+        "║ Card Number:    {}                              ║",
+        mask_pan("4111111111111111")
+    );
     println!("║ Transaction:    Withdrawal                                   ║");
     println!("║ Amount:         $200.00                                      ║");
     println!("║ Date/Time:      Jan 15, 15:00:03                            ║");
@@ -148,7 +210,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("  ✓ Original MTI: {}", financial_request.mti);
     println!("  ✓ Parsed MTI:   {}", parsed_message.mti);
-    println!("  ✓ Fields match: {}", parsed_message.get_field_numbers().len());
+    println!(
+        "  ✓ Fields match: {}",
+        parsed_message.get_field_numbers().len()
+    );
     println!("  ✓ Roundtrip successful!\n");
 
     Ok(())

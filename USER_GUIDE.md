@@ -425,7 +425,7 @@ Validator::validate_required_fields(&message)?;
 log::info!("Transaction for card: {}", mask_pan(&pan));
 
 // Never log full PAN or PIN
-// log::info!("PAN: {}", pan); // ❌ DON'T DO THIS
+// log::info!("PAN: {}", pan); //  DON'T DO THIS
 ```
 
 ### 3. Use Constants
@@ -435,7 +435,7 @@ log::info!("Transaction for card: {}", mask_pan(&pan));
 .field(Field::ProcessingCode, ProcessingCode::PURCHASE.to_string())
 
 // Avoid magic strings
-// .field(Field::ProcessingCode, "000000") // ❌ Less clear
+// .field(Field::ProcessingCode, "000000") //  Less clear
 ```
 
 ### 4. Handle Errors
@@ -595,13 +595,3 @@ println!("Present fields: {:?}", fields);
 
 ---
 
-## Further Reading
-
-- [ISO 8583 Standard](https://www.iso.org/standard/31628.html)
-- [Response Codes Reference](response_codes.md)
-- [Processing Codes Guide](processing_codes.md)
-- [Examples Directory](examples/)
-
----
-
-**Need Help?** Check the [examples](examples/) directory for working code!

@@ -6,33 +6,35 @@
 use std::fmt;
 
 /// ISO 8583 Response Code
+#[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ResponseCode(pub u8, pub u8);
 
+#[allow(missing_docs)]
 impl ResponseCode {
     // Approval codes
     pub const APPROVED: Self = Self(0, 0);
     pub const APPROVED_WITH_ID: Self = Self(0, 1);
     pub const APPROVED_PARTIAL: Self = Self(0, 2);
-    
+
     // Referral codes
     pub const REFER_TO_ISSUER: Self = Self(0, 1);
     pub const REFER_SPECIAL: Self = Self(0, 2);
     pub const INVALID_MERCHANT: Self = Self(0, 3);
     pub const PICK_UP_CARD: Self = Self(0, 4);
-    
+
     // Decline codes
     pub const DO_NOT_HONOR: Self = Self(0, 5);
     pub const ERROR: Self = Self(0, 6);
     pub const PICK_UP_SPECIAL: Self = Self(0, 7);
     pub const HONOR_WITH_ID: Self = Self(0, 8);
-    
+
     // Format/validity errors
     pub const INVALID_TRANSACTION: Self = Self(1, 2);
     pub const INVALID_AMOUNT: Self = Self(1, 3);
     pub const INVALID_CARD_NUMBER: Self = Self(1, 4);
     pub const NO_SUCH_ISSUER: Self = Self(1, 5);
-    
+
     // Card/Account issues
     pub const CUSTOMER_CANCELLATION: Self = Self(1, 7);
     pub const DUPLICATE_TRANSACTION: Self = Self(1, 8);
@@ -48,7 +50,7 @@ impl ResponseCode {
     pub const FILE_UPDATE_FILE_LOCKED: Self = Self(2, 8);
     pub const FILE_UPDATE_FAILED: Self = Self(2, 9);
     pub const FORMAT_ERROR: Self = Self(3, 0);
-    
+
     // Security/Authorization issues
     pub const BANK_NOT_SUPPORTED: Self = Self(3, 1);
     pub const COMPLETED_PARTIALLY: Self = Self(3, 2);
@@ -58,7 +60,7 @@ impl ResponseCode {
     pub const CONTACT_ACQUIRER_SECURITY: Self = Self(3, 7);
     pub const LOST_CARD: Self = Self(4, 1);
     pub const STOLEN_CARD: Self = Self(4, 3);
-    
+
     // Insufficient funds/limits
     pub const INSUFFICIENT_FUNDS: Self = Self(5, 1);
     pub const NO_CHECKING_ACCOUNT: Self = Self(5, 2);
@@ -74,12 +76,12 @@ impl ResponseCode {
     pub const RESTRICTED_CARD_DECLINE: Self = Self(6, 2);
     pub const SECURITY_VIOLATION: Self = Self(6, 3);
     pub const EXCEEDS_WITHDRAWAL_FREQUENCY: Self = Self(6, 5);
-    
+
     // PIN issues
     pub const PIN_REQUIRED: Self = Self(7, 5);
     pub const PIN_VALIDATION_NOT_POSSIBLE: Self = Self(7, 6);
     pub const PIN_TRIES_EXCEEDED: Self = Self(7, 7);
-    
+
     // System/Network issues
     pub const CRYPTOGRAPHIC_FAILURE: Self = Self(8, 0);
     pub const CRYPTOGRAPHIC_KEY_SYNC_ERROR: Self = Self(8, 1);
@@ -92,7 +94,7 @@ impl ResponseCode {
     pub const DUPLICATE_TRANSMISSION: Self = Self(9, 4);
     pub const RECONCILE_ERROR: Self = Self(9, 5);
     pub const SYSTEM_MALFUNCTION: Self = Self(9, 6);
-    
+
     // Special conditions
     pub const MAC_ERROR: Self = Self(9, 7);
     pub const FAILED_SECURITY_CHECK: Self = Self(9, 8);
@@ -100,23 +102,6 @@ impl ResponseCode {
     /// Create from two digits
     pub fn new(first: u8, second: u8) -> Self {
         Self(first, second)
-    }
-
-    /// Parse from string (e.g., "00", "51")
-    pub fn from_str(s: &str) -> Option<Self> {
-        if s.len() != 2 {
-            return None;
-        }
-        
-        let first = s.chars().nth(0)?.to_digit(10)? as u8;
-        let second = s.chars().nth(1)?.to_digit(10)? as u8;
-        
-        Some(Self(first, second))
-    }
-
-    /// Convert to string format
-    pub fn to_string(&self) -> String {
-        format!("{}{}", self.0, self.1)
     }
 
     /// Get human-readable description
@@ -191,7 +176,23 @@ impl ResponseCode {
     }
 }
 
+impl std::str::FromStr for ResponseCode {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        if s.len() != 2 {
+            return Err(());
+        }
+
+        let first = s.chars().nth(0).ok_or(())?.to_digit(10).ok_or(())? as u8;
+        let second = s.chars().nth(1).ok_or(())?.to_digit(10).ok_or(())? as u8;
+
+        Ok(Self(first, second))
+    }
+}
+
 /// Response code category
+#[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResponseCategory {
     Approved,
@@ -247,17 +248,26 @@ mod tests {
 
     #[test]
     fn test_response_categories() {
-        assert_eq!(ResponseCode::APPROVED.category(), ResponseCategory::Approved);
-        assert_eq!(ResponseCode::INSUFFICIENT_FUNDS.category(), ResponseCategory::InsufficientFunds);
-        assert_eq!(ResponseCode::INCORRECT_PIN.category(), ResponseCategory::PINError);
+        assert_eq!(
+            ResponseCode::APPROVED.category(),
+            ResponseCategory::Approved
+        );
+        assert_eq!(
+            ResponseCode::INSUFFICIENT_FUNDS.category(),
+            ResponseCategory::InsufficientFunds
+        );
+        assert_eq!(
+            ResponseCode::INCORRECT_PIN.category(),
+            ResponseCategory::PINError
+        );
     }
 
     #[test]
     fn test_from_string() {
-        let code = ResponseCode::from_str("00").unwrap();
+        let code = "00".parse::<ResponseCode>().unwrap();
         assert_eq!(code, ResponseCode::APPROVED);
-        
-        let code = ResponseCode::from_str("51").unwrap();
+
+        let code = "51".parse::<ResponseCode>().unwrap();
         assert_eq!(code, ResponseCode::INSUFFICIENT_FUNDS);
     }
 

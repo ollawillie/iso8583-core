@@ -1,5 +1,6 @@
 //! Integration tests for ISO 8583 message parsing and generation
 
+use iso8583_core::field::FieldValue;
 use iso8583_core::*;
 
 #[test]
@@ -86,7 +87,10 @@ fn test_authorization_response() {
         .unwrap();
 
     assert!(response.mti.is_response());
-    assert_eq!(response.get_field(Field::ResponseCode).unwrap().as_string(), Some("00"));
+    assert_eq!(
+        response.get_field(Field::ResponseCode).unwrap().as_string(),
+        Some("00")
+    );
 }
 
 #[test]
@@ -137,6 +141,7 @@ fn test_reversal_request() {
 fn test_network_management() {
     let message = ISO8583Message::builder()
         .mti(MessageType::NETWORK_MANAGEMENT_REQUEST)
+        .field(Field::ProcessingCode, "000000")
         .field(Field::TransmissionDateTime, "0115000000")
         .field(Field::SystemTraceAuditNumber, "000001")
         .field(Field::LocalTransactionTime, "000000")
@@ -168,11 +173,17 @@ fn test_variable_length_fields() {
 
     // Verify variable length fields were parsed correctly
     assert_eq!(
-        parsed.get_field(Field::PrimaryAccountNumber).unwrap().as_string(),
+        parsed
+            .get_field(Field::PrimaryAccountNumber)
+            .unwrap()
+            .as_string(),
         Some("4111111111111111")
     );
     assert_eq!(
-        parsed.get_field(Field::AcquiringInstitutionIdentificationCode).unwrap().as_string(),
+        parsed
+            .get_field(Field::AcquiringInstitutionIdentificationCode)
+            .unwrap()
+            .as_string(),
         Some("12345")
     );
 }
@@ -313,7 +324,7 @@ fn test_multiple_messages() {
     ];
 
     for (mti_str, pan, amount) in messages {
-        let mti = MessageType::from_str(mti_str).unwrap();
+        let mti: MessageType = mti_str.parse().unwrap();
         let message = ISO8583Message::builder()
             .mti(mti)
             .field(Field::PrimaryAccountNumber, pan)
@@ -330,7 +341,10 @@ fn test_multiple_messages() {
 
         assert_eq!(parsed.mti.to_string(), mti_str);
         assert_eq!(
-            parsed.get_field(Field::PrimaryAccountNumber).unwrap().as_string(),
+            parsed
+                .get_field(Field::PrimaryAccountNumber)
+                .unwrap()
+                .as_string(),
             Some(pan)
         );
     }

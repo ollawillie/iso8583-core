@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Field definition initialization without runtime overhead
 - Duplicate code in field definitions
 
-## [0.1.0] - 2024-02-15
+## [0.1.0] - 2026-02-15
 
 ### Added
 - Complete ISO 8583 message parser (ASCII encoding)
@@ -85,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No cryptographic operations (user responsibility)
 - No HSM integration (user responsibility)
 
-## [0.0.1] - 2024-01-15
+## [0.0.1] - 2026-01-15
 
 ### Added
 - Initial project structure
@@ -115,5 +115,3 @@ The following changes are planned for 1.0.0:
 
 For questions and support:
 - Documentation: [README.md](README.md)
-- Issues: [GitHub Issues](https://github.com/[your-org]/iso8583-core/issues)
-- Discussions: [GitHub Discussions](https://github.com/[your-org]/iso8583-core/discussions)

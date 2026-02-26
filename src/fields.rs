@@ -12,6 +12,8 @@ pub trait IsoField {
 ///
 /// # Example
 /// ```
+/// use iso8583_core::define_field;
+///
 /// define_field!(
 ///     /// Primary Account Number
 ///     Field2Pan,
@@ -65,6 +67,8 @@ macro_rules! define_field {
 ///
 /// # Example
 /// ```
+/// use iso8583_core::define_numeric_field;
+///
 /// define_numeric_field!(
 ///     /// Transaction Amount (12 digits)
 ///     Field4Amount,
@@ -88,25 +92,27 @@ macro_rules! define_numeric_field {
             const NUMBER: u8 = $num;
         }
 
-        impl $name {
-            /// Create from byte array
-            #[inline]
-            pub const fn new(data: [u8; $len]) -> Self {
-                Self(data)
-            }
+        impl std::str::FromStr for $name {
+            type Err = &'static str;
 
-            /// Create from ASCII string (must be exact length)
-            #[inline]
-            pub fn from_str(s: &str) -> Result<Self, &'static str> {
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
                 if s.len() != $len {
                     return Err("Invalid length");
                 }
-                if !s.bytes().all(|b: u8| b.is_ascii_digit()) {
+                if !s.bytes().all(|b| b.is_ascii_digit()) {
                     return Err("Must contain only digits");
                 }
                 let mut data = [0u8; $len];
                 data.copy_from_slice(s.as_bytes());
                 Ok(Self(data))
+            }
+        }
+
+        impl $name {
+            /// Create from byte array
+            #[inline]
+            pub const fn new(data: [u8; $len]) -> Self {
+                Self(data)
             }
 
             /// Get as byte slice
@@ -274,17 +280,17 @@ mod tests {
 
     #[test]
     fn test_numeric_field_creation() {
-        let amount = Field4Amount::from_str("000000010000").unwrap();
+        let amount = "000000010000".parse::<Field4Amount>().unwrap();
         assert_eq!(amount.to_u64().unwrap(), 10000);
     }
 
     #[test]
     fn test_numeric_field_validation() {
         // Wrong length
-        assert!(Field4Amount::from_str("123").is_err());
-        
+        assert!("123".parse::<Field4Amount>().is_err());
+
         // Non-numeric
-        assert!(Field4Amount::from_str("00000001000A").is_err());
+        assert!("00000001000A".parse::<Field4Amount>().is_err());
     }
 
     #[test]

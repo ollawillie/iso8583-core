@@ -4,7 +4,7 @@
 
 use iso8583_core::*;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     println!("╔══════════════════════════════════════════════════════════════╗");
     println!("║            BALANCE INQUIRY TRANSACTION EXAMPLE               ║");
     println!("╚══════════════════════════════════════════════════════════════╝\n");
@@ -27,12 +27,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Balance Inquiry Request:");
     println!("  Card:      {}", mask_pan("4111111111111111"));
-    println!("  Terminal:  {}", request.get_field(Field::CardAcceptorTerminalIdentification).unwrap());
+    println!(
+        "  Terminal:  {}",
+        request
+            .get_field(Field::CardAcceptorTerminalIdentification)
+            .unwrap()
+    );
     println!("  Type:      Checking Account Balance");
     println!("  Time:      09:30:00\n");
 
     // Response with balance
-    let response = ISO8583Message::builder()
+    let _response = ISO8583Message::builder()
         .mti(MessageType::AUTHORIZATION_RESPONSE)
         .field(Field::PrimaryAccountNumber, "4111111111111111")
         .field(Field::ProcessingCode, "310000")

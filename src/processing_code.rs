@@ -9,6 +9,7 @@
 use std::fmt;
 
 /// Processing Code (6 digits)
+#[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ProcessingCode {
     pub transaction_type: TransactionType,
@@ -74,7 +75,7 @@ pub enum AccountType {
 
 impl ProcessingCode {
     /// Common processing codes as constants
-    
+    ///
     /// Purchase from default account (000000)
     pub const PURCHASE: Self = Self {
         transaction_type: TransactionType::Purchase,
@@ -151,33 +152,6 @@ impl ProcessingCode {
         }
     }
 
-    /// Parse from 6-digit string
-    pub fn from_str(s: &str) -> Option<Self> {
-        if s.len() != 6 {
-            return None;
-        }
-
-        let tt = s[0..2].parse::<u8>().ok()?;
-        let from = s[2..4].parse::<u8>().ok()?;
-        let to = s[4..6].parse::<u8>().ok()?;
-
-        Some(Self {
-            transaction_type: TransactionType::from_code(tt)?,
-            from_account: AccountType::from_code(from)?,
-            to_account: AccountType::from_code(to)?,
-        })
-    }
-
-    /// Convert to 6-digit string
-    pub fn to_string(&self) -> String {
-        format!(
-            "{:02}{:02}{:02}",
-            self.transaction_type.to_code(),
-            self.from_account.to_code(),
-            self.to_account.to_code()
-        )
-    }
-
     /// Get transaction description
     pub fn description(&self) -> String {
         let txn_desc = match self.transaction_type {
@@ -231,12 +205,32 @@ impl ProcessingCode {
     pub fn is_transfer(&self) -> bool {
         matches!(
             self.transaction_type,
-            TransactionType::TransferCheckingToSavings
-                | TransactionType::TransferSavingsToChecking
+            TransactionType::TransferCheckingToSavings | TransactionType::TransferSavingsToChecking
         )
     }
 }
 
+impl std::str::FromStr for ProcessingCode {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        if s.len() != 6 {
+            return Err(());
+        }
+
+        let tt = s[0..2].parse::<u8>().map_err(|_| ())?;
+        let from = s[2..4].parse::<u8>().map_err(|_| ())?;
+        let to = s[4..6].parse::<u8>().map_err(|_| ())?;
+
+        Ok(Self {
+            transaction_type: TransactionType::from_code(tt).ok_or(())?,
+            from_account: AccountType::from_code(from).ok_or(())?,
+            to_account: AccountType::from_code(to).ok_or(())?,
+        })
+    }
+}
+
+#[allow(missing_docs)]
 impl TransactionType {
     pub fn from_code(code: u8) -> Option<Self> {
         match code {
@@ -273,6 +267,7 @@ impl TransactionType {
     }
 }
 
+#[allow(missing_docs)]
 impl AccountType {
     pub fn from_code(code: u8) -> Option<Self> {
         match code {
@@ -293,7 +288,13 @@ impl AccountType {
 
 impl fmt::Display for ProcessingCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(
+            f,
+            "{:02}{:02}{:02}",
+            self.transaction_type.to_code(),
+            self.from_account.to_code(),
+            self.to_account.to_code()
+        )
     }
 }
 
@@ -305,15 +306,18 @@ mod tests {
     fn test_processing_codes() {
         assert_eq!(ProcessingCode::PURCHASE.to_string(), "000000");
         assert_eq!(ProcessingCode::WITHDRAWAL_CHECKING.to_string(), "010000");
-        assert_eq!(ProcessingCode::BALANCE_INQUIRY_SAVINGS.to_string(), "311000");
+        assert_eq!(
+            ProcessingCode::BALANCE_INQUIRY_SAVINGS.to_string(),
+            "311000"
+        );
     }
 
     #[test]
     fn test_from_string() {
-        let code = ProcessingCode::from_str("000000").unwrap();
+        let code = "000000".parse::<ProcessingCode>().unwrap();
         assert_eq!(code, ProcessingCode::PURCHASE);
 
-        let code = ProcessingCode::from_str("010000").unwrap();
+        let code = "010000".parse::<ProcessingCode>().unwrap();
         assert_eq!(code, ProcessingCode::WITHDRAWAL_CHECKING);
     }
 

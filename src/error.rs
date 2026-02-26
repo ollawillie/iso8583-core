@@ -6,6 +6,7 @@ use thiserror::Error;
 pub type Result<T> = std::result::Result<T, ISO8583Error>;
 
 /// Errors that can occur during ISO 8583 message processing
+#[allow(missing_docs)]
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum ISO8583Error {
     /// Invalid message type indicator
@@ -134,7 +135,7 @@ impl ISO8583Error {
     }
 }
 
-// Conversion from &'static str to ISO8583Error
+// Conversion from &'static str to ISO8583Error for easy error handling
 impl From<&'static str> for ISO8583Error {
     fn from(s: &'static str) -> Self {
         ISO8583Error::Custom(s.to_string())

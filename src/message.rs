@@ -5,7 +5,7 @@
 
 use crate::bitmap::Bitmap;
 use crate::error::{ISO8583Error, Result};
-use crate::field::{Field, FieldValue};
+use crate::field::{Field, FieldDefinition, FieldLength, FieldType, FieldValue};
 use crate::mti::MessageType;
 use std::collections::HashMap;
 
@@ -60,7 +60,7 @@ impl ISO8583Message {
             }
             let secondary_hex = hex::encode(&bytes[offset..offset + 8]);
             let secondary_bitmap = Bitmap::from_hex(&secondary_hex)?;
-            
+
             // Merge secondary bitmap into main bitmap
             for field_num in 65..=128 {
                 if secondary_bitmap.is_set(field_num) {
@@ -72,9 +72,10 @@ impl ISO8583Message {
 
         // 4. Parse fields based on bitmap
         let mut fields = HashMap::new();
-        let field_numbers = bitmap.get_set_fields();
+        let (field_array, field_count) = bitmap.get_set_fields();
 
-        for field_num in field_numbers {
+        for item in field_array.iter().take(field_count) {
+            let field_num = *item;
             if field_num == 1 || field_num == 65 {
                 continue; // Skip bitmap indicators
             }
@@ -96,9 +97,7 @@ impl ISO8583Message {
     }
 
     /// Parse a single field from bytes
-    fn parse_field(bytes: &[u8], def: &crate::field::FieldDefinition) -> Result<(FieldValue, usize)> {
-        use crate::field::{FieldLength, FieldType};
-
+    fn parse_field(bytes: &[u8], def: &FieldDefinition) -> Result<(FieldValue, usize)> {
         // Ensure we have at least some bytes to parse
         if bytes.is_empty() {
             return Err(ISO8583Error::message_too_short(1, 0));
@@ -116,12 +115,14 @@ impl ISO8583Message {
                 }
 
                 let value = match def.field_type {
-                    FieldType::Binary => {
-                        FieldValue::from_binary(bytes[..len].to_vec())
-                    }
+                    FieldType::Binary => FieldValue::from_binary(bytes[..len].to_vec()),
                     _ => {
-                        let s = std::str::from_utf8(&bytes[..len])
-                            .map_err(|e| ISO8583Error::EncodingError(format!("Invalid UTF-8 in field {}: {}", def.number, e)))?;
+                        let s = std::str::from_utf8(&bytes[..len]).map_err(|e| {
+                            ISO8583Error::EncodingError(format!(
+                                "Invalid UTF-8 in field {}: {}",
+                                def.number, e
+                            ))
+                        })?;
                         FieldValue::from_string(s.to_string())
                     }
                 };
@@ -134,15 +135,26 @@ impl ISO8583Message {
                     return Err(ISO8583Error::message_too_short(2, bytes.len()));
                 }
 
-                let length_str = std::str::from_utf8(&bytes[..2])
-                    .map_err(|e| ISO8583Error::EncodingError(format!("Invalid length indicator for field {}: {}", def.number, e)))?;
-                let length: usize = length_str.parse()
-                    .map_err(|e| ISO8583Error::EncodingError(format!("Invalid length value for field {}: {}", def.number, e)))?;
+                let length_str = std::str::from_utf8(&bytes[..2]).map_err(|e| {
+                    ISO8583Error::EncodingError(format!(
+                        "Invalid length indicator for field {}: {}",
+                        def.number, e
+                    ))
+                })?;
+                let length: usize = length_str.parse().map_err(|e| {
+                    ISO8583Error::EncodingError(format!(
+                        "Invalid length value for field {}: {}",
+                        def.number, e
+                    ))
+                })?;
 
                 if length > max_len {
                     return Err(ISO8583Error::invalid_field_value(
                         def.number,
-                        format!("Length {} exceeds maximum {} for field {}", length, max_len, def.number),
+                        format!(
+                            "Length {} exceeds maximum {} for field {}",
+                            length, max_len, def.number
+                        ),
                     ));
                 }
 
@@ -152,12 +164,14 @@ impl ISO8583Message {
                 }
 
                 let value = match def.field_type {
-                    FieldType::Binary => {
-                        FieldValue::from_binary(bytes[2..2 + length].to_vec())
-                    }
+                    FieldType::Binary => FieldValue::from_binary(bytes[2..2 + length].to_vec()),
                     _ => {
-                        let s = std::str::from_utf8(&bytes[2..2 + length])
-                            .map_err(|e| ISO8583Error::EncodingError(format!("Invalid UTF-8 in field {}: {}", def.number, e)))?;
+                        let s = std::str::from_utf8(&bytes[2..2 + length]).map_err(|e| {
+                            ISO8583Error::EncodingError(format!(
+                                "Invalid UTF-8 in field {}: {}",
+                                def.number, e
+                            ))
+                        })?;
                         FieldValue::from_string(s.to_string())
                     }
                 };
@@ -170,15 +184,26 @@ impl ISO8583Message {
                     return Err(ISO8583Error::message_too_short(3, bytes.len()));
                 }
 
-                let length_str = std::str::from_utf8(&bytes[..3])
-                    .map_err(|e| ISO8583Error::EncodingError(format!("Invalid length indicator for field {}: {}", def.number, e)))?;
-                let length: usize = length_str.parse()
-                    .map_err(|e| ISO8583Error::EncodingError(format!("Invalid length value for field {}: {}", def.number, e)))?;
+                let length_str = std::str::from_utf8(&bytes[..3]).map_err(|e| {
+                    ISO8583Error::EncodingError(format!(
+                        "Invalid length indicator for field {}: {}",
+                        def.number, e
+                    ))
+                })?;
+                let length: usize = length_str.parse().map_err(|e| {
+                    ISO8583Error::EncodingError(format!(
+                        "Invalid length value for field {}: {}",
+                        def.number, e
+                    ))
+                })?;
 
                 if length > max_len {
                     return Err(ISO8583Error::invalid_field_value(
                         def.number,
-                        format!("Length {} exceeds maximum {} for field {}", length, max_len, def.number),
+                        format!(
+                            "Length {} exceeds maximum {} for field {}",
+                            length, max_len, def.number
+                        ),
                     ));
                 }
 
@@ -188,12 +213,14 @@ impl ISO8583Message {
                 }
 
                 let value = match def.field_type {
-                    FieldType::Binary => {
-                        FieldValue::from_binary(bytes[3..3 + length].to_vec())
-                    }
+                    FieldType::Binary => FieldValue::from_binary(bytes[3..3 + length].to_vec()),
                     _ => {
-                        let s = std::str::from_utf8(&bytes[3..3 + length])
-                            .map_err(|e| ISO8583Error::EncodingError(format!("Invalid UTF-8 in field {}: {}", def.number, e)))?;
+                        let s = std::str::from_utf8(&bytes[3..3 + length]).map_err(|e| {
+                            ISO8583Error::EncodingError(format!(
+                                "Invalid UTF-8 in field {}: {}",
+                                def.number, e
+                            ))
+                        })?;
                         FieldValue::from_string(s.to_string())
                     }
                 };
@@ -211,7 +238,8 @@ impl ISO8583Message {
         bytes.extend_from_slice(&self.mti.to_bytes());
 
         // 2. Add bitmap(s)
-        bytes.extend_from_slice(&self.bitmap.to_bytes());
+        let (bitmap_bytes, bitmap_len) = self.bitmap.to_bytes();
+        bytes.extend_from_slice(&bitmap_bytes[..bitmap_len]);
 
         // 3. Add fields in numerical order
         let mut field_numbers: Vec<u8> = self.fields.keys().copied().collect();
@@ -234,8 +262,6 @@ impl ISO8583Message {
 
     /// Generate bytes for a single field
     fn generate_field(field: &Field, value: &FieldValue) -> Vec<u8> {
-        use crate::field::FieldLength;
-
         let def = field.definition();
         let mut bytes = Vec::new();
 
@@ -249,7 +275,7 @@ impl ISO8583Message {
                         if field_str.len() < len {
                             // Pad with spaces or zeros depending on field type
                             match def.field_type {
-                                crate::field::FieldType::Numeric => {
+                                FieldType::Numeric => {
                                     field_str = format!("{:0>width$}", field_str, width = len);
                                 }
                                 _ => {
@@ -387,7 +413,9 @@ impl MessageBuilder {
 
     /// Add a binary field
     pub fn binary_field(mut self, field: Field, value: Vec<u8>) -> Self {
-        let _ = self.message.set_field(field, FieldValue::from_binary(value));
+        let _ = self
+            .message
+            .set_field(field, FieldValue::from_binary(value));
         self
     }
 

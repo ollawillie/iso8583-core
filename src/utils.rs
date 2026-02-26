@@ -1,13 +1,13 @@
 //! Utility functions for common ISO 8583 operations
 
 use crate::error::{ISO8583Error, Result};
-use chrono::{DateTime, NaiveDate, NaiveTime, Utc};
+use chrono::Utc;
 
 /// Mask PAN for display (shows first 6 and last 4 digits)
 ///
 /// # Example
 /// ```
-/// use rust_iso8583::utils::mask_pan;
+/// use iso8583_core::utils::mask_pan;
 ///
 /// assert_eq!(mask_pan("4111111111111111"), "411111****1111");
 /// assert_eq!(mask_pan("5500000000000004"), "550000****0004");
@@ -25,7 +25,7 @@ pub fn mask_pan(pan: &str) -> String {
 ///
 /// # Example
 /// ```
-/// use rust_iso8583::utils::format_amount;
+/// use iso8583_core::utils::format_amount;
 ///
 /// assert_eq!(format_amount("000000010000", "$"), "$100.00");
 /// assert_eq!(format_amount("000000020050", "₦"), "₦200.50");
@@ -39,7 +39,7 @@ pub fn format_amount(amount_str: &str, currency_symbol: &str) -> String {
 ///
 /// # Example
 /// ```
-/// use rust_iso8583::utils::parse_amount;
+/// use iso8583_core::utils::parse_amount;
 ///
 /// assert_eq!(parse_amount(100.50), "000000010050");
 /// assert_eq!(parse_amount(1234.56), "000000123456");
@@ -53,7 +53,7 @@ pub fn parse_amount(amount: f64) -> String {
 ///
 /// # Example
 /// ```
-/// use rust_iso8583::utils::generate_transmission_datetime;
+/// use iso8583_core::utils::generate_transmission_datetime;
 ///
 /// let dt = generate_transmission_datetime();
 /// assert_eq!(dt.len(), 10);
@@ -100,10 +100,10 @@ pub fn parse_transmission_datetime(s: &str) -> Result<(u32, u32, u32, u32, u32)>
         .parse()
         .map_err(|_| ISO8583Error::invalid_datetime(7, "Invalid second"))?;
 
-    if month < 1 || month > 12 {
+    if !(1..=12).contains(&month) {
         return Err(ISO8583Error::invalid_datetime(7, "Month out of range"));
     }
-    if day < 1 || day > 31 {
+    if !(1..=31).contains(&day) {
         return Err(ISO8583Error::invalid_datetime(7, "Day out of range"));
     }
     if hour >= 24 {
@@ -140,7 +140,7 @@ pub fn parse_expiration_date(s: &str) -> Result<(u32, u32)> {
         .parse()
         .map_err(|_| ISO8583Error::invalid_datetime(14, "Invalid month"))?;
 
-    if month < 1 || month > 12 {
+    if !(1..=12).contains(&month) {
         return Err(ISO8583Error::invalid_datetime(14, "Month out of range"));
     }
 
@@ -283,7 +283,7 @@ mod tests {
     #[test]
     fn test_expiration_date() {
         assert_eq!(format_expiration_date(2025, 12), "2512");
-        
+
         let result = parse_expiration_date("2512");
         assert!(result.is_ok());
         let (year, month) = result.unwrap();

@@ -5,9 +5,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "alloc")]
-extern crate alloc;
-
 /// Data type for field values
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -93,175 +90,175 @@ macro_rules! iso_table {
 }
 
 /// ISO 8583:1987 Specification Table
-/// 
+///
 /// This is a compile-time const array with zero runtime overhead.
 /// Field lookup is O(1) with no heap allocation.
 pub const ISO8583_1987_TABLE: [Option<FieldDefinition>; 129] = iso_table! {
     // Field 1: Secondary Bitmap (binary, fixed 8 bytes)
     1 => FieldDefinition::fixed(DataType::Binary, 8),
-    
+
     // Field 2: Primary Account Number (numeric, LLVAR, max 19)
     2 => FieldDefinition::llvar(DataType::Numeric, 19),
-    
+
     // Field 3: Processing Code (numeric, fixed 6)
     3 => FieldDefinition::fixed(DataType::Numeric, 6),
-    
+
     // Field 4: Transaction Amount (numeric, fixed 12)
     4 => FieldDefinition::fixed(DataType::Numeric, 12),
-    
+
     // Field 5: Settlement Amount (numeric, fixed 12)
     5 => FieldDefinition::fixed(DataType::Numeric, 12),
-    
+
     // Field 6: Cardholder Billing Amount (numeric, fixed 12)
     6 => FieldDefinition::fixed(DataType::Numeric, 12),
-    
+
     // Field 7: Transmission Date & Time (numeric, fixed 10 - MMDDhhmmss)
     7 => FieldDefinition::fixed(DataType::Numeric, 10),
-    
+
     // Field 8: Cardholder Billing Fee Amount (numeric, fixed 8)
     8 => FieldDefinition::fixed(DataType::Numeric, 8),
-    
+
     // Field 9: Settlement Conversion Rate (numeric, fixed 8)
     9 => FieldDefinition::fixed(DataType::Numeric, 8),
-    
+
     // Field 10: Cardholder Billing Conversion Rate (numeric, fixed 8)
     10 => FieldDefinition::fixed(DataType::Numeric, 8),
-    
+
     // Field 11: System Trace Audit Number (numeric, fixed 6)
     11 => FieldDefinition::fixed(DataType::Numeric, 6),
-    
+
     // Field 12: Local Transaction Time (numeric, fixed 6 - hhmmss)
     12 => FieldDefinition::fixed(DataType::Numeric, 6),
-    
+
     // Field 13: Local Transaction Date (numeric, fixed 4 - MMDD)
     13 => FieldDefinition::fixed(DataType::Numeric, 4),
-    
+
     // Field 14: Expiration Date (numeric, fixed 4 - YYMM)
     14 => FieldDefinition::fixed(DataType::Numeric, 4),
-    
+
     // Field 15: Settlement Date (numeric, fixed 4 - MMDD)
     15 => FieldDefinition::fixed(DataType::Numeric, 4),
-    
+
     // Field 16: Currency Conversion Date (numeric, fixed 4)
     16 => FieldDefinition::fixed(DataType::Numeric, 4),
-    
+
     // Field 17: Capture Date (numeric, fixed 4)
     17 => FieldDefinition::fixed(DataType::Numeric, 4),
-    
+
     // Field 18: Merchant Type (numeric, fixed 4)
     18 => FieldDefinition::fixed(DataType::Numeric, 4),
-    
+
     // Field 19: Acquiring Institution Country Code (numeric, fixed 3)
     19 => FieldDefinition::fixed(DataType::Numeric, 3),
-    
+
     // Field 20: PAN Extended Country Code (numeric, fixed 3)
     20 => FieldDefinition::fixed(DataType::Numeric, 3),
-    
+
     // Field 21: Forwarding Institution Country Code (numeric, fixed 3)
     21 => FieldDefinition::fixed(DataType::Numeric, 3),
-    
+
     // Field 22: Point of Service Entry Mode (numeric, fixed 3)
     22 => FieldDefinition::fixed(DataType::Numeric, 3),
-    
+
     // Field 23: Card Sequence Number (numeric, fixed 3)
     23 => FieldDefinition::fixed(DataType::Numeric, 3),
-    
+
     // Field 24: Function Code (numeric, fixed 3)
     24 => FieldDefinition::fixed(DataType::Numeric, 3),
-    
+
     // Field 25: Point of Service Condition Code (numeric, fixed 2)
     25 => FieldDefinition::fixed(DataType::Numeric, 2),
-    
+
     // Field 26: Point of Service Capture Code (numeric, fixed 2)
     26 => FieldDefinition::fixed(DataType::Numeric, 2),
-    
+
     // Field 27: Authorization Identification Response Length (numeric, fixed 1)
     27 => FieldDefinition::fixed(DataType::Numeric, 1),
-    
+
     // Field 28: Transaction Fee Amount (numeric, fixed 9)
     28 => FieldDefinition::fixed(DataType::Numeric, 9),
-    
+
     // Field 29: Settlement Fee Amount (numeric, fixed 9)
     29 => FieldDefinition::fixed(DataType::Numeric, 9),
-    
+
     // Field 30: Transaction Processing Fee Amount (numeric, fixed 9)
     30 => FieldDefinition::fixed(DataType::Numeric, 9),
-    
+
     // Field 31: Settlement Processing Fee Amount (numeric, fixed 9)
     31 => FieldDefinition::fixed(DataType::Numeric, 9),
-    
+
     // Field 32: Acquiring Institution ID Code (LLVAR, max 11)
     32 => FieldDefinition::llvar(DataType::Numeric, 11),
-    
+
     // Field 33: Forwarding Institution ID Code (LLVAR, max 11)
     33 => FieldDefinition::llvar(DataType::Numeric, 11),
-    
+
     // Field 34: Extended PAN (LLVAR, max 28)
     34 => FieldDefinition::llvar(DataType::Alphanumeric, 28),
-    
+
     // Field 35: Track 2 Data (LLVAR, max 37)
     35 => FieldDefinition::llvar(DataType::Track2, 37),
-    
+
     // Field 36: Track 3 Data (LLLVAR, max 104)
     36 => FieldDefinition::lllvar(DataType::Track3, 104),
-    
+
     // Field 37: Retrieval Reference Number (alphanumeric, fixed 12)
     37 => FieldDefinition::fixed(DataType::Alphanumeric, 12),
-    
+
     // Field 38: Authorization ID Response (alphanumeric, fixed 6)
     38 => FieldDefinition::fixed(DataType::Alphanumeric, 6),
-    
+
     // Field 39: Response Code (alphanumeric, fixed 2)
     39 => FieldDefinition::fixed(DataType::Alphanumeric, 2),
-    
+
     // Field 40: Service Restriction Code (alphanumeric, fixed 3)
     40 => FieldDefinition::fixed(DataType::Alphanumeric, 3),
-    
+
     // Field 41: Card Acceptor Terminal ID (alphanumeric special, fixed 8)
     41 => FieldDefinition::fixed(DataType::AlphanumericSpecial, 8),
-    
+
     // Field 42: Card Acceptor ID Code (alphanumeric special, fixed 15)
     42 => FieldDefinition::fixed(DataType::AlphanumericSpecial, 15),
-    
+
     // Field 43: Card Acceptor Name/Location (alphanumeric special, fixed 40)
     43 => FieldDefinition::fixed(DataType::AlphanumericSpecial, 40),
-    
+
     // Field 44: Additional Response Data (LLVAR, max 25)
     44 => FieldDefinition::llvar(DataType::AlphanumericSpecial, 25),
-    
+
     // Field 45: Track 1 Data (LLVAR, max 76)
     45 => FieldDefinition::llvar(DataType::AlphanumericSpecial, 76),
-    
+
     // Field 46: Additional Data - ISO (LLLVAR, max 999)
     46 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 999),
-    
+
     // Field 47: Additional Data - National (LLLVAR, max 999)
     47 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 999),
-    
+
     // Field 48: Additional Data - Private (LLLVAR, max 999)
     48 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 999),
-    
+
     // Field 49: Currency Code, Transaction (alphanumeric, fixed 3)
     49 => FieldDefinition::fixed(DataType::Alphanumeric, 3),
-    
+
     // Field 50: Currency Code, Settlement (alphanumeric, fixed 3)
     50 => FieldDefinition::fixed(DataType::Alphanumeric, 3),
-    
+
     // Field 51: Currency Code, Cardholder Billing (alphanumeric, fixed 3)
     51 => FieldDefinition::fixed(DataType::Alphanumeric, 3),
-    
+
     // Field 52: PIN Data (binary, fixed 8)
     52 => FieldDefinition::fixed(DataType::Binary, 8),
-    
+
     // Field 53: Security Related Control Information (numeric, fixed 16)
     53 => FieldDefinition::fixed(DataType::Numeric, 16),
-    
+
     // Field 54: Additional Amounts (LLLVAR, max 120)
     54 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 120),
-    
+
     // Field 55: ICC Data - EMV (LLLVAR, max 999)
     55 => FieldDefinition::lllvar(DataType::Binary, 999),
-    
+
     // Fields 56-63: Reserved for ISO use
     56 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 999),
     57 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 999),
@@ -271,13 +268,13 @@ pub const ISO8583_1987_TABLE: [Option<FieldDefinition>; 129] = iso_table! {
     61 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 999),
     62 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 999),
     63 => FieldDefinition::lllvar(DataType::AlphanumericSpecial, 999),
-    
+
     // Field 64: Message Authentication Code (binary, fixed 8)
     64 => FieldDefinition::fixed(DataType::Binary, 8),
-    
+
     // Field 65: Tertiary Bitmap (binary, fixed 8)
     65 => FieldDefinition::fixed(DataType::Binary, 8),
-    
+
     // Fields 66-128: Additional fields
     66 => FieldDefinition::fixed(DataType::Numeric, 1),
     67 => FieldDefinition::fixed(DataType::Numeric, 2),
@@ -396,7 +393,7 @@ mod tests {
     fn test_zero_overhead() {
         // Verify that FieldDefinition is small
         assert_eq!(core::mem::size_of::<FieldDefinition>(), 4);
-        
+
         // Verify enums are single byte
         assert_eq!(core::mem::size_of::<DataType>(), 1);
         assert_eq!(core::mem::size_of::<LengthType>(), 1);

@@ -10,6 +10,7 @@ use crate::error::{ISO8583Error, Result};
 use std::fmt;
 
 /// ISO 8583 Message Type Indicator
+#[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct MessageType {
     pub version: u8,
@@ -95,7 +96,7 @@ pub enum MessageOrigin {
 
 impl MessageType {
     /// Common message types as constants
-    
+    ///
     /// Authorization request (0100)
     pub const AUTHORIZATION_REQUEST: Self = Self {
         version: 0,
@@ -231,32 +232,6 @@ impl MessageType {
         }
     }
 
-    /// Parse MTI from 4-digit string
-    pub fn from_str(s: &str) -> Result<Self> {
-        if s.len() != 4 {
-            return Err(ISO8583Error::InvalidMTI(format!(
-                "MTI must be 4 digits, got {}",
-                s.len()
-            )));
-        }
-
-        let digits: Vec<u8> = s
-            .chars()
-            .map(|c| {
-                c.to_digit(10)
-                    .map(|d| d as u8)
-                    .ok_or_else(|| ISO8583Error::InvalidMTI(format!("Invalid digit: {}", c)))
-            })
-            .collect::<Result<Vec<_>>>()?;
-
-        Ok(Self {
-            version: digits[0],
-            class: MessageClass::from_digit(digits[1])?,
-            function: MessageFunction::from_digit(digits[2])?,
-            origin: MessageOrigin::from_digit(digits[3])?,
-        })
-    }
-
     /// Parse MTI from bytes
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
         if bytes.len() < 4 {
@@ -269,18 +244,7 @@ impl MessageType {
         let s = std::str::from_utf8(&bytes[..4])
             .map_err(|e| ISO8583Error::InvalidMTI(format!("Invalid UTF-8: {}", e)))?;
 
-        Self::from_str(s)
-    }
-
-    /// Convert to 4-digit string
-    pub fn to_string(&self) -> String {
-        format!(
-            "{}{}{}{}",
-            self.version,
-            self.class.to_digit(),
-            self.function.to_digit(),
-            self.origin.to_digit()
-        )
+        s.parse()
     }
 
     /// Convert to bytes
@@ -323,6 +287,35 @@ impl MessageType {
     }
 }
 
+impl std::str::FromStr for MessageType {
+    type Err = ISO8583Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        if s.len() != 4 {
+            return Err(ISO8583Error::InvalidMTI(format!(
+                "MTI must be 4 digits, got {}",
+                s.len()
+            )));
+        }
+
+        let digits: Vec<u8> = s
+            .chars()
+            .map(|c| {
+                c.to_digit(10)
+                    .map(|d| d as u8)
+                    .ok_or_else(|| ISO8583Error::InvalidMTI(format!("Invalid digit: {}", c)))
+            })
+            .collect::<Result<Vec<_>>>()?;
+
+        Ok(Self {
+            version: digits[0],
+            class: MessageClass::from_digit(digits[1])?,
+            function: MessageFunction::from_digit(digits[2])?,
+            origin: MessageOrigin::from_digit(digits[3])?,
+        })
+    }
+}
+
 impl MessageClass {
     fn from_digit(digit: u8) -> Result<Self> {
         match digit {
@@ -343,8 +336,8 @@ impl MessageClass {
         }
     }
 
-    fn to_digit(&self) -> u8 {
-        *self as u8
+    fn to_digit(self) -> u8 {
+        self as u8
     }
 }
 
@@ -368,8 +361,8 @@ impl MessageFunction {
         }
     }
 
-    fn to_digit(&self) -> u8 {
-        *self as u8
+    fn to_digit(self) -> u8 {
+        self as u8
     }
 }
 
@@ -393,14 +386,21 @@ impl MessageOrigin {
         }
     }
 
-    fn to_digit(&self) -> u8 {
-        *self as u8
+    fn to_digit(self) -> u8 {
+        self as u8
     }
 }
 
 impl fmt::Display for MessageType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(
+            f,
+            "{}{}{}{}",
+            self.version,
+            self.class.to_digit(),
+            self.function.to_digit(),
+            self.origin.to_digit()
+        )
     }
 }
 
@@ -410,7 +410,7 @@ mod tests {
 
     #[test]
     fn test_mti_parsing() {
-        let mti = MessageType::from_str("0100").unwrap();
+        let mti: MessageType = "0100".parse().unwrap();
         assert_eq!(mti.version, 0);
         assert_eq!(mti.class, MessageClass::Authorization);
         assert_eq!(mti.function, MessageFunction::Request);
@@ -459,8 +459,8 @@ mod tests {
 
     #[test]
     fn test_invalid_mti() {
-        assert!(MessageType::from_str("123").is_err()); // Too short
-        assert!(MessageType::from_str("12345").is_err()); // Too long
-        assert!(MessageType::from_str("abcd").is_err()); // Invalid chars
+        assert!("123".parse::<MessageType>().is_err()); // Too short
+        assert!("12345".parse::<MessageType>().is_err()); // Too long
+        assert!("abcd".parse::<MessageType>().is_err()); // Invalid chars
     }
 }

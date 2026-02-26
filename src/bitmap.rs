@@ -101,18 +101,23 @@ impl Bitmap {
         *self.bits.get(idx).unwrap_or(&false)
     }
 
-    /// Get all set field numbers
-    pub fn get_set_fields(&self) -> Vec<u8> {
-        self.bits
-            .iter()
-            .enumerate()
-            .filter(|(_, &bit)| bit)
-            .map(|(idx, _)| (idx + 1) as u8)
-            .filter(|&field| {
-                // Exclude bitmap indicator fields unless they represent actual data
-                field != 1 && field != 65
-            })
-            .collect()
+    /// Get all set field numbers (returns array and count)
+    pub fn get_set_fields(&self) -> ([u8; 192], usize) {
+        let mut fields = [0u8; 192];
+        let mut count = 0;
+        
+        for (idx, &bit) in self.bits.iter().enumerate() {
+            if bit {
+                let field = (idx + 1) as u8;
+                // Exclude bitmap indicator fields
+                if field != 1 && field != 65 {
+                    fields[count] = field;
+                    count += 1;
+                }
+            }
+        }
+        
+        (fields, count)
     }
 
     /// Check if secondary bitmap is present (field 1 is set)
@@ -136,29 +141,73 @@ impl Bitmap {
         }
     }
 
-    /// Convert to bytes (primary bitmap only)
-    pub fn to_primary_bytes(&self) -> Vec<u8> {
-        self.bits_to_bytes(&self.bits[0..64])
+    /// Convert to bytes (primary bitmap only) - returns array and length
+    pub fn to_primary_bytes(&self) -> ([u8; 8], usize) {
+        let mut bytes = [0u8; 8];
+        for (byte_idx, chunk) in self.bits[0..64].chunks(8).enumerate() {
+            let mut byte_val = 0u8;
+            for (bit_idx, &bit) in chunk.iter().enumerate() {
+                if bit {
+                    byte_val |= 1 << (7 - bit_idx);
+                }
+            }
+            bytes[byte_idx] = byte_val;
+        }
+        (bytes, 8)
     }
 
-    /// Convert to bytes (primary + secondary if present)
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut bytes = self.to_primary_bytes();
+    /// Convert to bytes (primary + secondary if present) - returns array and length
+    pub fn to_bytes(&self) -> ([u8; 24], usize) {
+        let mut bytes = [0u8; 24];
+        let mut len = 0;
+        
+        // Primary bitmap
+        for (byte_idx, chunk) in self.bits[0..64].chunks(8).enumerate() {
+            let mut byte_val = 0u8;
+            for (bit_idx, &bit) in chunk.iter().enumerate() {
+                if bit {
+                    byte_val |= 1 << (7 - bit_idx);
+                }
+            }
+            bytes[len] = byte_val;
+            len += 1;
+        }
 
+        // Secondary bitmap if present
         if self.has_secondary_bitmap() {
-            bytes.extend_from_slice(&self.bits_to_bytes(&self.bits[64..128]));
+            for (byte_idx, chunk) in self.bits[64..128].chunks(8).enumerate() {
+                let mut byte_val = 0u8;
+                for (bit_idx, &bit) in chunk.iter().enumerate() {
+                    if bit {
+                        byte_val |= 1 << (7 - bit_idx);
+                    }
+                }
+                bytes[len] = byte_val;
+                len += 1;
+            }
         }
 
+        // Tertiary bitmap if present
         if self.has_tertiary_bitmap() {
-            bytes.extend_from_slice(&self.bits_to_bytes(&self.bits[128..192]));
+            for (byte_idx, chunk) in self.bits[128..192].chunks(8).enumerate() {
+                let mut byte_val = 0u8;
+                for (bit_idx, &bit) in chunk.iter().enumerate() {
+                    if bit {
+                        byte_val |= 1 << (7 - bit_idx);
+                    }
+                }
+                bytes[len] = byte_val;
+                len += 1;
+            }
         }
 
-        bytes
+        (bytes, len)
     }
 
     /// Convert to hex string
     pub fn to_hex(&self) -> String {
-        hex::encode(self.to_bytes())
+        let (bytes, len) = self.to_bytes();
+        hex::encode(&bytes[..len])
     }
 
     /// Helper function to convert bit slice to bytes
@@ -178,7 +227,8 @@ impl Bitmap {
 
     /// Get bitmap size in bytes
     pub fn size_in_bytes(&self) -> usize {
-        self.to_bytes().len()
+        let (_, len) = self.to_bytes();
+        len
     }
 }
 
@@ -202,7 +252,7 @@ mod tests {
     #[test]
     fn test_bitmap_new() {
         let bitmap = Bitmap::new();
-        assert_eq!(bitmap.get_set_fields().len(), 0);
+        assert_eq!(bitmap.get_set_fields().1, 0);
         assert!(!bitmap.has_secondary_bitmap());
     }
 
@@ -240,7 +290,7 @@ mod tests {
         bitmap.set(11).unwrap();
         bitmap.set(41).unwrap();
 
-        let fields = bitmap.get_set_fields();
+        let (fields, count) = bitmap.get_set_fields(); let fields = &fields[..count];
         assert_eq!(fields, vec![2, 3, 11, 41]);
     }
 
@@ -278,7 +328,7 @@ mod tests {
         bitmap.set(3).unwrap();
         bitmap.set(4).unwrap();
 
-        let bytes = bitmap.to_bytes();
+        let (bytes_array, len) = bitmap.to_bytes(); let bytes = &bytes_array[..len];
         let restored = Bitmap::from_bytes(&bytes).unwrap();
 
         assert_eq!(bitmap, restored);
@@ -313,7 +363,7 @@ mod tests {
         bitmap.set(42).unwrap(); // Merchant ID
         bitmap.set(49).unwrap(); // Currency code
 
-        let fields = bitmap.get_set_fields();
+        let (fields, count) = bitmap.get_set_fields(); let fields = &fields[..count];
         assert_eq!(fields, vec![2, 3, 4, 7, 11, 12, 13, 22, 41, 42, 49]);
     }
 

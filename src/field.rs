@@ -10,12 +10,13 @@ use crate::error::{ISO8583Error, Result};
 use std::fmt;
 
 /// ISO 8583 Field enumeration
+#[allow(missing_docs)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum Field {
     // Field 1 is the secondary bitmap (handled specially)
     SecondaryBitmap = 1,
-    
+
     // Fields 2-128
     PrimaryAccountNumber = 2,
     ProcessingCode = 3,
@@ -147,7 +148,7 @@ pub enum Field {
     MessageAuthenticationCode2 = 128,
 }
 
-/// Field data type
+/// Field type enumeration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FieldType {
     /// Numeric (n)
@@ -178,7 +179,8 @@ pub enum FieldLength {
 }
 
 /// Complete field definition
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[allow(missing_docs)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FieldDefinition {
     pub number: u8,
     pub name: &'static str,
@@ -206,25 +208,148 @@ impl Field {
     pub fn definition(&self) -> FieldDefinition {
         let num = self.number();
         let defs = get_field_definitions();
-        defs.get(num as usize).cloned().unwrap_or_else(|| {
-            FieldDefinition {
-                number: num,
-                name: "Unknown",
-                field_type: FieldType::AlphaNumericSpecial,
-                length: FieldLength::LLLVar(999),
-                description: "Unknown field",
-            }
+        defs.get(num as usize).copied().unwrap_or(FieldDefinition {
+            number: num,
+            name: "Unknown",
+            field_type: FieldType::AlphaNumericSpecial,
+            length: FieldLength::LLLVar(999),
+            description: "Unknown field",
         })
     }
 
     /// Create field from number
     pub fn from_number(num: u8) -> Result<Self> {
-        if num == 0 || num > 128 {
-            return Err(ISO8583Error::InvalidFieldNumber(num));
+        match num {
+            1 => Ok(Field::SecondaryBitmap),
+            2 => Ok(Field::PrimaryAccountNumber),
+            3 => Ok(Field::ProcessingCode),
+            4 => Ok(Field::TransactionAmount),
+            5 => Ok(Field::SettlementAmount),
+            6 => Ok(Field::CardholderBillingAmount),
+            7 => Ok(Field::TransmissionDateTime),
+            8 => Ok(Field::CardholderBillingFeeAmount),
+            9 => Ok(Field::SettlementConversionRate),
+            10 => Ok(Field::CardholderBillingConversionRate),
+            11 => Ok(Field::SystemTraceAuditNumber),
+            12 => Ok(Field::LocalTransactionTime),
+            13 => Ok(Field::LocalTransactionDate),
+            14 => Ok(Field::ExpirationDate),
+            15 => Ok(Field::SettlementDate),
+            16 => Ok(Field::CurrencyConversionDate),
+            17 => Ok(Field::CaptureDate),
+            18 => Ok(Field::MerchantType),
+            19 => Ok(Field::AcquiringInstitutionCountryCode),
+            20 => Ok(Field::PANExtendedCountryCode),
+            21 => Ok(Field::ForwardingInstitutionCountryCode),
+            22 => Ok(Field::PointOfServiceEntryMode),
+            23 => Ok(Field::ApplicationPANSequenceNumber),
+            24 => Ok(Field::NetworkInternationalIdentifier),
+            25 => Ok(Field::PointOfServiceConditionCode),
+            26 => Ok(Field::PointOfServiceCaptureCode),
+            27 => Ok(Field::AuthorizingIdentificationResponseLength),
+            28 => Ok(Field::TransactionFeeAmount),
+            29 => Ok(Field::SettlementFeeAmount),
+            30 => Ok(Field::TransactionProcessingFeeAmount),
+            31 => Ok(Field::SettlementProcessingFeeAmount),
+            32 => Ok(Field::AcquiringInstitutionIdentificationCode),
+            33 => Ok(Field::ForwardingInstitutionIdentificationCode),
+            34 => Ok(Field::ExtendedPrimaryAccountNumber),
+            35 => Ok(Field::Track2Data),
+            36 => Ok(Field::Track3Data),
+            37 => Ok(Field::RetrievalReferenceNumber),
+            38 => Ok(Field::AuthorizationIdentificationResponse),
+            39 => Ok(Field::ResponseCode),
+            40 => Ok(Field::ServiceRestrictionCode),
+            41 => Ok(Field::CardAcceptorTerminalIdentification),
+            42 => Ok(Field::CardAcceptorIdentificationCode),
+            43 => Ok(Field::CardAcceptorNameLocation),
+            44 => Ok(Field::AdditionalResponseData),
+            45 => Ok(Field::Track1Data),
+            46 => Ok(Field::AdditionalDataISO),
+            47 => Ok(Field::AdditionalDataNational),
+            48 => Ok(Field::AdditionalDataPrivate),
+            49 => Ok(Field::CurrencyCodeTransaction),
+            50 => Ok(Field::CurrencyCodeSettlement),
+            51 => Ok(Field::CurrencyCodeCardholderBilling),
+            52 => Ok(Field::PersonalIdentificationNumberData),
+            53 => Ok(Field::SecurityRelatedControlInformation),
+            54 => Ok(Field::AdditionalAmounts),
+            55 => Ok(Field::ReservedISO1),
+            56 => Ok(Field::ReservedISO2),
+            57 => Ok(Field::ReservedNational1),
+            58 => Ok(Field::ReservedNational2),
+            59 => Ok(Field::ReservedNational3),
+            60 => Ok(Field::ReservedPrivate1),
+            61 => Ok(Field::ReservedPrivate2),
+            62 => Ok(Field::ReservedPrivate3),
+            63 => Ok(Field::ReservedPrivate4),
+            64 => Ok(Field::MessageAuthenticationCode),
+            65 => Ok(Field::TertiaryBitmap),
+            66 => Ok(Field::SettlementCode),
+            67 => Ok(Field::ExtendedPaymentCode),
+            68 => Ok(Field::ReceivingInstitutionCountryCode),
+            69 => Ok(Field::SettlementInstitutionCountryCode),
+            70 => Ok(Field::NetworkManagementInformationCode),
+            71 => Ok(Field::MessageNumber),
+            72 => Ok(Field::MessageNumberLast),
+            73 => Ok(Field::DateAction),
+            74 => Ok(Field::CreditsNumber),
+            75 => Ok(Field::CreditsReversalNumber),
+            76 => Ok(Field::DebitsNumber),
+            77 => Ok(Field::DebitsReversalNumber),
+            78 => Ok(Field::TransferNumber),
+            79 => Ok(Field::TransferReversalNumber),
+            80 => Ok(Field::InquiriesNumber),
+            81 => Ok(Field::AuthorizationsNumber),
+            82 => Ok(Field::CreditsProcessingFeeAmount),
+            83 => Ok(Field::CreditsTransactionFeeAmount),
+            84 => Ok(Field::DebitsProcessingFeeAmount),
+            85 => Ok(Field::DebitsTransactionFeeAmount),
+            86 => Ok(Field::CreditsAmount),
+            87 => Ok(Field::CreditsReversalAmount),
+            88 => Ok(Field::DebitsAmount),
+            89 => Ok(Field::DebitsReversalAmount),
+            90 => Ok(Field::OriginalDataElements),
+            91 => Ok(Field::FileUpdateCode),
+            92 => Ok(Field::FileSecurityCode),
+            93 => Ok(Field::ResponseIndicator),
+            94 => Ok(Field::ServiceIndicator),
+            95 => Ok(Field::ReplacementAmounts),
+            96 => Ok(Field::MessageSecurityCode),
+            97 => Ok(Field::NetSettlementAmount),
+            98 => Ok(Field::Payee),
+            99 => Ok(Field::SettlementInstitutionIdentificationCode),
+            100 => Ok(Field::ReceivingInstitutionIdentificationCode),
+            101 => Ok(Field::FileName),
+            102 => Ok(Field::AccountIdentification1),
+            103 => Ok(Field::AccountIdentification2),
+            104 => Ok(Field::TransactionDescription),
+            105 => Ok(Field::ReservedISO3),
+            106 => Ok(Field::ReservedISO4),
+            107 => Ok(Field::ReservedISO5),
+            108 => Ok(Field::ReservedISO6),
+            109 => Ok(Field::ReservedISO7),
+            110 => Ok(Field::ReservedISO8),
+            111 => Ok(Field::ReservedISO9),
+            112 => Ok(Field::ReservedNational4),
+            113 => Ok(Field::ReservedNational5),
+            114 => Ok(Field::ReservedNational6),
+            115 => Ok(Field::ReservedNational7),
+            116 => Ok(Field::ReservedNational8),
+            117 => Ok(Field::ReservedNational9),
+            118 => Ok(Field::ReservedNational10),
+            119 => Ok(Field::ReservedNational11),
+            120 => Ok(Field::ReservedPrivate5),
+            121 => Ok(Field::ReservedPrivate6),
+            122 => Ok(Field::ReservedPrivate7),
+            123 => Ok(Field::ReservedPrivate8),
+            124 => Ok(Field::InfoText),
+            125 => Ok(Field::NetworkManagementInformation),
+            126 => Ok(Field::IssuerTraceId),
+            127 => Ok(Field::ReservedPrivate9),
+            128 => Ok(Field::MessageAuthenticationCode2),
+            _ => Err(ISO8583Error::InvalidFieldNumber(num)),
         }
-
-        // Use unsafe transmute (safe because we validated the range)
-        Ok(unsafe { std::mem::transmute(num) })
     }
 
     /// Get all defined fields (2-128, excluding 1 and 65 which are bitmaps)
@@ -289,6 +414,7 @@ impl fmt::Display for FieldValue {
 
 // Field definitions table (0-128, index 0 is unused, 1 and 65 are bitmaps)
 // Using const function to avoid runtime initialization
+#[allow(dead_code)]
 const fn create_field_definitions() -> [FieldDefinition; 129] {
     // Note: This is a simplified version for const initialization
     // In production, consider using a proc macro or build.rs for complex initialization
@@ -754,7 +880,7 @@ fn get_field_definitions() -> Vec<FieldDefinition> {
         },
         // Field 56-128 definitions would continue...
         // For brevity, I'll add a few more key fields and then continue in the next file
-        
+
         // Field 64 - Message Authentication Code
         FieldDefinition {
             number: 64,
@@ -1223,10 +1349,9 @@ impl FieldDefinition {
             return None;
         }
         let defs = get_field_definitions();
-        Some(defs[number as usize].clone())
+        Some(defs[number as usize])
     }
 }
-
 
 #[cfg(test)]
 mod tests {

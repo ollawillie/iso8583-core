@@ -4,7 +4,7 @@
 
 use iso8583_core::*;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     println!("╔══════════════════════════════════════════════════════════════╗");
     println!("║              POS PURCHASE TRANSACTION EXAMPLE                ║");
     println!("╚══════════════════════════════════════════════════════════════╝\n");
@@ -32,16 +32,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .field(Field::RetrievalReferenceNumber, "000115789012")
         .field(Field::CardAcceptorTerminalIdentification, "POS12345")
         .field(Field::CardAcceptorIdentificationCode, "RESTAURANT00001")
-        .field(Field::CardAcceptorNameLocation, "JOES DINER        NEW YORK      NY US")
+        .field(
+            Field::CardAcceptorNameLocation,
+            "JOES DINER        NEW YORK      NY US",
+        )
         .field(Field::CurrencyCodeTransaction, "840")
         .build()?;
 
     println!("Transaction Details:");
-    println!("  Merchant:  {}", request.get_field(Field::CardAcceptorNameLocation).unwrap());
+    println!(
+        "  Merchant:  {}",
+        request.get_field(Field::CardAcceptorNameLocation).unwrap()
+    );
     println!("  Card:      {}", mask_pan("5500000000000004"));
-    println!("  Amount:    {}", format_amount(request.get_field(Field::TransactionAmount).unwrap().as_string().unwrap()));
-    println!("  MCC:       {} (Restaurant)", request.get_field(Field::MerchantType).unwrap());
-    println!("  Terminal:  {}", request.get_field(Field::CardAcceptorTerminalIdentification).unwrap());
+    println!(
+        "  Amount:    {}",
+        format_amount(
+            request
+                .get_field(Field::TransactionAmount)
+                .unwrap()
+                .as_string()
+                .unwrap()
+        )
+    );
+    println!(
+        "  MCC:       {} (Restaurant)",
+        request.get_field(Field::MerchantType).unwrap()
+    );
+    println!(
+        "  Terminal:  {}",
+        request
+            .get_field(Field::CardAcceptorTerminalIdentification)
+            .unwrap()
+    );
     println!("  Entry:     Chip with PIN\n");
 
     // Generate bytes and show message structure
@@ -75,11 +98,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("← Response received from bank");
     println!("\nApproval Details:");
     println!("  Status:      ✓ APPROVED");
-    println!("  Auth Code:   {}", response.get_field(Field::AuthorizationIdentificationResponse).unwrap());
-    println!("  Response:    {} - {}", 
-             response.get_field(Field::ResponseCode).unwrap().as_string().unwrap(),
-             get_response_description("00"));
-    println!("  Reference:   {}\n", response.get_field(Field::RetrievalReferenceNumber).unwrap());
+    println!(
+        "  Auth Code:   {}",
+        response
+            .get_field(Field::AuthorizationIdentificationResponse)
+            .unwrap()
+    );
+    println!(
+        "  Response:    {} - {}",
+        response
+            .get_field(Field::ResponseCode)
+            .unwrap()
+            .as_string()
+            .unwrap(),
+        get_response_description("00")
+    );
+    println!(
+        "  Reference:   {}\n",
+        response.get_field(Field::RetrievalReferenceNumber).unwrap()
+    );
 
     // Print receipt
     println!("╔══════════════════════════════════════════════════════════════╗");
@@ -123,8 +160,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let parsed = ISO8583Message::from_bytes(&request_bytes)?;
     println!("  ✓ Parse successful");
     println!("  ✓ MTI matches: {} == {}", request.mti, parsed.mti);
-    println!("  ✓ All {} fields preserved", parsed.get_field_numbers().len());
-    println!("  ✓ Transaction amount: {}", format_amount(parsed.get_field(Field::TransactionAmount).unwrap().as_string().unwrap()));
+    println!(
+        "  ✓ All {} fields preserved",
+        parsed.get_field_numbers().len()
+    );
+    println!(
+        "  ✓ Transaction amount: {}",
+        format_amount(
+            parsed
+                .get_field(Field::TransactionAmount)
+                .unwrap()
+                .as_string()
+                .unwrap()
+        )
+    );
 
     Ok(())
 }

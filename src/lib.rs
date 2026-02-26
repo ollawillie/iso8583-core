@@ -15,12 +15,16 @@
 //! ```rust
 //! use iso8583_core::*;
 //!
-//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! # fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 //! // Build a message
 //! let message = ISO8583Message::builder()
 //!     .mti(MessageType::AUTHORIZATION_REQUEST)
 //!     .field(Field::PrimaryAccountNumber, "4111111111111111")
+//!     .field(Field::ProcessingCode, "000000")
 //!     .field(Field::TransactionAmount, "000000010000")
+//!     .field(Field::SystemTraceAuditNumber, "123456")
+//!     .field(Field::LocalTransactionTime, "120000")
+//!     .field(Field::LocalTransactionDate, "0219")
 //!     .build()?;
 //!
 //! // Generate bytes
@@ -52,16 +56,13 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![warn(missing_docs)]
 #![warn(rust_2018_idioms)]
-#![forbid(unsafe_code)]
-
-#[cfg(feature = "alloc")]
-extern crate alloc;
+#![cfg_attr(not(feature = "simd"), forbid(unsafe_code))]
 
 // Core modules
-pub mod spec;
 pub mod fields;
+pub mod spec;
 
-// Legacy field module (std only - for backward compatibility)
+// Legacy field module (std only)
 #[cfg(feature = "std")]
 pub mod field;
 
@@ -97,8 +98,8 @@ pub mod utils;
 pub mod message;
 
 // Re-exports for convenience
-pub use spec::{DataType, FieldDefinition, IsoSpec, Iso1987, LengthType};
 pub use fields::IsoField;
+pub use spec::{DataType, FieldDefinition, Iso1987, IsoSpec, LengthType};
 
 #[cfg(feature = "alloc")]
 pub use bitmap::Bitmap;
@@ -123,7 +124,7 @@ pub use validation::Validator;
 
 // Legacy field enum (std only for compatibility)
 #[cfg(feature = "std")]
-pub use crate::message::Field;
+pub use crate::field::Field;
 
 #[cfg(test)]
 mod tests {
@@ -153,6 +154,9 @@ mod tests {
             .field(Field::PrimaryAccountNumber, "4111111111111111")
             .field(Field::ProcessingCode, "000000")
             .field(Field::TransactionAmount, "000000010000")
+            .field(Field::SystemTraceAuditNumber, "123456")
+            .field(Field::LocalTransactionTime, "120000")
+            .field(Field::LocalTransactionDate, "0219")
             .build()
             .unwrap();
 
